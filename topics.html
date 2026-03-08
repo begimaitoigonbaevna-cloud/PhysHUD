@@ -8,49 +8,22 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         :root { --neon: #00f2ff; --bg: #000; }
-        body { 
-            margin: 0; background: var(--bg); color: white; 
-            font-family: 'Courier New', monospace; display: flex; height: 100vh; 
-            flex-direction: row;
-        }
-
-        /* Адаптивность для мобильных устройств */
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Courier New', monospace; display: flex; height: 100vh; flex-direction: row; }
         @media (max-width: 768px) {
             body { flex-direction: column; overflow-y: auto; }
             nav { width: 100% !important; border-right: none !important; border-bottom: 1px solid #222; height: auto !important; }
             main { padding: 20px !important; }
         }
-
         .grid { position: fixed; width: 100%; height: 100%; background-image: linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -1; }
-        
-        nav { 
-            width: 350px; border-right: 1px solid #222; padding: 30px; 
-            background: rgba(5, 5, 5, 0.95); box-sizing: border-box; 
-            display: flex; flex-direction: column;
-        }
-
-        .back-link { 
-            color: var(--neon); text-decoration: none; font-size: 12px; 
-            display: block; margin-bottom: 30px; border: 1px solid var(--neon); 
-            padding: 10px; text-align: center; transition: 0.3s;
-        }
-        .back-link:hover { background: rgba(0, 242, 255, 0.1); box-shadow: 0 0 10px var(--neon); }
-
-        .topic-btn { 
-            display: block; width: 100%; padding: 12px; margin-bottom: 10px; 
-            background: none; border: 1px solid #333; color: #888; 
-            text-align: left; cursor: pointer; font-family: inherit; transition: 0.3s;
-        }
+        nav { width: 350px; border-right: 1px solid #222; padding: 30px; background: rgba(5, 5, 5, 0.95); box-sizing: border-box; display: flex; flex-direction: column; }
+        .back-link { color: var(--neon); text-decoration: none; font-size: 12px; display: block; margin-bottom: 30px; border: 1px solid var(--neon); padding: 10px; text-align: center; }
+        .topic-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: none; border: 1px solid #333; color: #888; text-align: left; cursor: pointer; font-family: inherit; }
         .topic-btn:hover, .topic-btn.active { border-color: var(--neon); color: var(--neon); background: rgba(0, 242, 255, 0.05); }
-
-        main { flex-grow: 1; padding: 60px; overflow-y: auto; scroll-behavior: smooth; }
+        main { flex-grow: 1; padding: 60px; overflow-y: auto; }
         h1 { color: var(--neon); border-bottom: 1px solid var(--neon); padding-bottom: 10px; font-size: 24px; text-transform: uppercase; }
-        
         .content-area { line-height: 1.8; color: #ccc; font-size: 16px; max-width: 800px; }
+        #charge-sim { width: 100%; height: 200px; background: #050505; border: 1px solid var(--neon); margin-top: 20px; border-radius: 4px; }
         b { color: var(--neon); }
-        i { color: #888; }
-        ul { padding-left: 20px; }
-        li { margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -63,56 +36,77 @@
         <button class="topic-btn" onclick="show('induction', this)">03. Эл.магнитная индукция</button>
         <button class="topic-btn" onclick="show('lenz', this)">04. Правило Ленца</button>
     </nav>
-
     <main>
         <h1 id="title">ИНФОРМАЦИЯ</h1>
-        <div id="text" class="content-area">Выберите тему слева для расшифровки...</div>
+        <div id="text" class="content-area">Выберите тему слева...</div>
     </main>
 
     <script>
         const data = {
             'electrostatics': { 
                 t: 'Электростатика', 
-                c: `Раздел электричества состоит из 2-х частей (Электростатика и Электродинамика). Изучает свойства электрического тока.<br><br>
-                    <b>Электростатика</b> — это раздел электродинамики, который изучает свойства и взаимодействия неподвижных (покоящихся) электрических зарядов.<br><br>
-                    Термин происходит от древнегреческого <i>«ἤλεκτρον» (электрон)</i> — «янтарь» и латинского <i>«staticus»</i> — «неподвижный».<br><br>
-                    <b>Закон Кулона (в вакууме и воздухе):</b><br>
-                    Электрическое взаимодействие описывается формулой:
+                c: `Раздел электричества... <b>Электростатика</b> — изучение неподвижных зарядов.<br><br>
+                    <b>Закон Кулона:</b>
                     $$F = k \\cdot \\frac{|q_1| \\cdot |q_2|}{r^2}$$
-                    <ul>
-                        <li><b>F</b> — сила взаимодействия зарядов, Н;</li>
-                        <li><b>q</b> — величина электрического заряда по модулю, Кл;</li>
-                        <li><b>r</b> — расстояние между зарядами, м;</li>
-                        <li><b>k</b> — коэффициент пропорциональности ($k \\approx 9 \\cdot 10^9 \\frac{\\text{Н} \\cdot \\text{м}^2}{\\text{Кл}^2}$).</li>
-                    </ul>
-
-                    <b>Для диэлектрической среды (вода, масло):</b><br>
-                    Сила взаимодействия уменьшается, потому что среда «сопротивляется» полю. В знаменатель добавляется $\\varepsilon$ (относительная диэлектрическая проницаемость):
+                    Где $k \\approx 9 \\cdot 10^9 \\frac{\\text{Н} \\cdot \\text{м}^2}{\\text{Кл}^2}$.<br><br>
+                    В среде с диэлектриком $\\varepsilon$:
                     $$F = \\frac{1}{4\\pi\\varepsilon_0\\varepsilon} \\cdot \\frac{q_1 q_2}{r^2}$$
-                    Где $\\varepsilon_0 \\approx 8,85 \\cdot 10^{-12}$ Ф/м — электрическая постоянная.<br><br>
-
-                    <b>Примеры применения в жизни:</b><br>
-                    1. <b>Очистка воздуха (Электрофильтры):</b> На заводах частицы сажи проходят через сетку под напряжением, заряжаются и притягиваются к пластинам. В небо выходит чистый воздух.<br>
-                    2. <b>Электрокардиография (ЭКГ):</b> Датчики фиксируют изменения электростатического потенциала на коже при работе сердца и превращают их в график.`
+                    <div style="margin-top:30px; color:var(--neon);">🧪 ЖИВАЯ МОДЕЛЬ (КЛИКНИ ДЛЯ СМЕНЫ ЗАРЯДА):</div>
+                    <canvas id="charge-sim"></canvas>`
             },
-            'electrodynamics': { t: 'Электродинамика', c: 'Ожидаю ваш текст для заполнения...' },
-            'induction': { t: 'Электромагнитная индукция', c: 'Ожидаю ваш текст для заполнения...' },
-            'lenz': { t: 'Правило Ленца', c: 'Ожидаю ваш текст для заполнения...' }
+            'electrodynamics': { t: 'Электродинамика', c: 'Текст скоро будет...' },
+            'induction': { t: 'Индукция', c: 'Текст скоро будет...' },
+            'lenz': { t: 'Правило Ленца', c: 'Текст скоро будет...' }
         };
+
+        let simInterval;
 
         function show(id, btn) {
             document.getElementById('title').innerText = data[id].t;
-            // Используем innerHTML вместо innerText для отображения формул и тегов
             document.getElementById('text').innerHTML = data[id].c;
-            
-            // Заставляем MathJax перерисовать формулы в новом тексте
-            MathJax.typesetPromise();
+
+            // Принудительно обновляем MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+
+            if (id === 'electrostatics') {
+                setTimeout(startChargeSim, 100);
+            } else if (simInterval) {
+                clearInterval(simInterval);
+            }
 
             document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
-    </script>
-</body>
-</html>    </script>
-</body>
-</html>
+
+        function startChargeSim() {
+            const canvas = document.getElementById('charge-sim');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+
+            let c1 = { x: canvas.width/2 - 60, y: canvas.height/2, q: 1, col: '#ff0055' };
+            let c2 = { x: canvas.width/2 + 60, y: canvas.height/2, q: 1, col: '#ff0055' };
+            
+            canvas.onclick = () => {
+                c2.q *= -1;
+                c2.col = c2.q > 0 ? '#ff0055' : '#00f2ff';
+            };
+
+            if (simInterval) clearInterval(simInterval);
+            simInterval = setInterval(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const dx = c2.x - c1.x;
+                const force = (c1.q * c2.q) / (dx * dx) * 15000;
+                
+                if (Math.abs(dx) > 40 && Math.abs(dx) < canvas.width - 40) {
+                    c1.x -= force; c2.x += force;
+                } else {
+                    c1.x = canvas.width/2 - 60; c2.x = canvas.width/2 + 60;
+                }
+
+                [c1, c2].forEach(c => {
+                    ctx.fillStyle = c.col;
+                    ctx.beginPath(); ctx.arc(c.x, c.y,
