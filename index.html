@@ -18,11 +18,11 @@
 
         .logo { font-size: 12px; letter-spacing: 4px; color: var(--neon); margin-bottom: 20px; font-weight: bold; text-align: center; }
         
-        /* Кнопка перехода на страницу тем */
         .nav-topics-btn {
             background: none; border: 2px solid var(--neon); color: var(--neon);
             padding: 15px; width: 100%; cursor: pointer; font-weight: bold;
             text-transform: uppercase; margin-bottom: 40px; transition: 0.3s;
+            font-family: 'Courier New', monospace;
         }
         .nav-topics-btn:hover { background: var(--neon); color: black; box-shadow: 0 0 20px var(--neon); }
 
@@ -40,9 +40,7 @@
     
     <nav>
         <div class="logo">HAGIWARA // LAB_CORE</div>
-<button class="nav-topics-btn" onclick="window.location.href='topics.html'" style="background: none; border: 2px solid #00f2ff; color: #00f2ff; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-bottom: 40px; font-family: 'Courier New', monospace;">
-    📂 ОТКРЫТЬ УЧЕБНЫЕ ТЕМЫ
-</button>
+
         <button class="nav-topics-btn" onclick="window.location.href='topics.html'">
             📂 ОТКРЫТЬ УЧЕБНЫЕ ТЕМЫ
         </button>
@@ -61,4 +59,62 @@
     </nav>
 
     <div id="canvas3d"></div>
-    <canvas id="
+    <canvas id="waveCanvas"></canvas>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas3d').appendChild(renderer.domElement);
+
+        // Создаем кристалл
+        const geometry = new THREE.IcosahedronGeometry(2, 0);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00f2ff, wireframe: true, transparent: true, opacity: 0.4 });
+        const crystal = new THREE.Mesh(geometry, material);
+        scene.add(crystal);
+        camera.position.z = 5;
+
+        const wCanvas = document.getElementById('waveCanvas');
+        const wCtx = wCanvas.getContext('2d');
+
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const L = parseFloat(document.getElementById('L').value);
+            const C = parseFloat(document.getElementById('C').value);
+            const omega = 1 / Math.sqrt(L * C); // Формула Томсона
+            document.getElementById('freq-out').innerText = (omega / (2 * Math.PI)).toFixed(2);
+
+            crystal.rotation.y += 0.01;
+            crystal.rotation.z += 0.005;
+            
+            // Пульсация кристалла в такт частоте
+            const scale = 1 + Math.sin(time * omega) * 0.1;
+            crystal.scale.set(scale, scale, scale);
+
+            // Рисуем волну осциллографа
+            wCtx.clearRect(0, 0, wCanvas.width, wCanvas.height);
+            wCtx.strokeStyle = '#00f2ff';
+            wCtx.lineWidth = 2;
+            wCtx.beginPath();
+            for (let i = 0; i < wCanvas.width; i++) {
+                const y = 60 + Math.sin((i * 0.05) - (time * omega * 2)) * 40;
+                if (i === 0) wCtx.moveTo(i, y); else wCtx.lineTo(i, y);
+            }
+            wCtx.stroke();
+
+            time += 0.05;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
