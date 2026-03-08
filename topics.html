@@ -1,1 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>PhysHUD // ТЕМЫ</title>
+    <style>
+        :root { --neon: #00f2ff; --bg: #000; }
+        body { 
+            margin: 0; background: var(--bg); color: white; 
+            font-family: 'Courier New', monospace; display: flex; height: 100vh; 
+        }
+        
+        /* Сетка фона */
+        .grid {
+            position: fixed; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: -1;
+        }
 
+        nav {
+            width: 350px; border-right: 1px solid #222; padding: 30px;
+            background: rgba(5, 5, 5, 0.9);
+        }
+
+        .back-link { color: var(--neon); text-decoration: none; font-size: 12px; display: block; margin-bottom: 30px; }
+        .back-link:hover { text-shadow: 0 0 10px var(--neon); }
+
+        .topic-btn {
+            display: block; width: 100%; padding: 12px; margin-bottom: 10px;
+            background: none; border: 1px solid #333; color: #888;
+            text-align: left; cursor: pointer; transition: 0.3s;
+        }
+        .topic-btn:hover, .topic-btn.active { border-color: var(--neon); color: var(--neon); background: rgba(0, 242, 255, 0.05); }
+
+        main { flex-grow: 1; padding: 60px; overflow-y: auto; }
+        h1 { color: var(--neon); border-bottom: 1px solid var(--neon); padding-bottom: 10px; font-size: 24px; }
+        .content-area { line-height: 1.6; color: #ccc; font-size: 16px; max-width: 800px; }
+    </style>
+</head>
+<body>
+    <div class="grid"></div>
+    
+    <nav>
+        <a href="index.html" class="back-link">⟵ ВЕРНУТЬСЯ К СИМУЛЯТОРУ</a>
+        <h2 style="font-size: 14px; color: #444; letter-spacing: 3px;">КАТАЛОГ ТЕМ</h2>
+        
+        <button class="topic-btn" onclick="show('electrostatics', this)">01. Электростатика</button>
+        <button class="topic-btn" onclick="show('electrodynamics', this)">02. Электродинамика</button>
+        <button class="topic-btn" onclick="show('induction', this)">03. Электромагнитная индукция</button>
+        <button class="topic-btn" onclick="show('lenz', this)">04. Правило Ленца</button>
+    </nav>
+
+    <main>
+        <h1 id="title">Выберите тему</h1>
+        <div id="text" class="content-area">Здесь появится содержание выбранного раздела.</div>
+    </main>
+
+    <script>
+        const data = {
+            'electrostatics': { t: 'Электростатика', c: 'Твой текст про электростатику здесь...' },
+            'electrodynamics': { t: 'Электродинамика', c: 'Твой текст про электродинамику здесь...' },
+            'induction': { t: 'Электромагнитная индукция', c: 'Твой текст про индукцию здесь...' },
+            'lenz': { t: 'Правило Ленца', c: 'Твой текст про правило Ленца здесь...' }
+        };
+
+        function show(id, btn) {
+            document.getElementById('title').innerText = data[id].t;
+            document.getElementById('text').innerText = data[id].c;
+            
+            // Подсветка активной кнопки
+            document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+    </script>
+</body>
+</html>
