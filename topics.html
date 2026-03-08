@@ -15,14 +15,14 @@
             main { padding: 20px !important; }
         }
         .grid { position: fixed; width: 100%; height: 100%; background-image: linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px); background-size: 40px 40px; z-index: -1; }
-        nav { width: 350px; border-right: 1px solid #222; padding: 30px; background: rgba(5, 5, 5, 0.95); box-sizing: border-box; display: flex; flex-direction: column; }
+        nav { width: 320px; border-right: 1px solid #222; padding: 30px; background: rgba(5, 5, 5, 0.95); box-sizing: border-box; display: flex; flex-direction: column; }
         .back-link { color: var(--neon); text-decoration: none; font-size: 12px; display: block; margin-bottom: 30px; border: 1px solid var(--neon); padding: 10px; text-align: center; }
         .topic-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: none; border: 1px solid #333; color: #888; text-align: left; cursor: pointer; font-family: inherit; }
         .topic-btn:hover, .topic-btn.active { border-color: var(--neon); color: var(--neon); background: rgba(0, 242, 255, 0.05); }
         main { flex-grow: 1; padding: 60px; overflow-y: auto; }
         h1 { color: var(--neon); border-bottom: 1px solid var(--neon); padding-bottom: 10px; font-size: 24px; text-transform: uppercase; }
         .content-area { line-height: 1.8; color: #ccc; font-size: 16px; max-width: 800px; }
-        #charge-sim { width: 100%; height: 200px; background: #050505; border: 1px solid var(--neon); margin-top: 20px; border-radius: 4px; }
+        #charge-sim { width: 100%; height: 200px; background: #050505; border: 1px solid var(--neon); margin-top: 20px; border-radius: 4px; cursor: pointer; }
         b { color: var(--neon); }
     </style>
 </head>
@@ -30,7 +30,7 @@
     <div class="grid"></div>
     <nav>
         <a href="index.html" class="back-link">⟵ К СИМУЛЯТОРУ</a>
-        <h2 style="font-size: 12px; color: #444; letter-spacing: 3px; margin-bottom: 20px;">АРХИВ ДАННЫХ</h2>
+        <h2 style="font-size: 11px; color: #444; letter-spacing: 3px; margin-bottom: 20px;">АРХИВ ДАННЫХ</h2>
         <button class="topic-btn" onclick="show('electrostatics', this)">01. Электростатика</button>
         <button class="topic-btn" onclick="show('electrodynamics', this)">02. Электродинамика</button>
         <button class="topic-btn" onclick="show('induction', this)">03. Эл.магнитная индукция</button>
@@ -38,25 +38,40 @@
     </nav>
     <main>
         <h1 id="title">ИНФОРМАЦИЯ</h1>
-        <div id="text" class="content-area">Выберите тему слева...</div>
+        <div id="text" class="content-area">Выберите тему слева для инициализации данных...</div>
     </main>
 
     <script>
         const data = {
             'electrostatics': { 
                 t: 'Электростатика', 
-                c: `Раздел электричества... <b>Электростатика</b> — изучение неподвижных зарядов.<br><br>
+                c: `Изучает неподвижные заряды и их взаимодействие.<br><br>
                     <b>Закон Кулона:</b>
                     $$F = k \\cdot \\frac{|q_1| \\cdot |q_2|}{r^2}$$
-                    Где $k \\approx 9 \\cdot 10^9 \\frac{\\text{Н} \\cdot \\text{м}^2}{\\text{Кл}^2}$.<br><br>
-                    В среде с диэлектриком $\\varepsilon$:
-                    $$F = \\frac{1}{4\\pi\\varepsilon_0\\varepsilon} \\cdot \\frac{q_1 q_2}{r^2}$$
-                    <div style="margin-top:30px; color:var(--neon);">🧪 ЖИВАЯ МОДЕЛЬ (КЛИКНИ ДЛЯ СМЕНЫ ЗАРЯДА):</div>
+                    Где $k \\approx 9 \\cdot 10^9 \\frac{\\text{Н} \\cdot \\text{м}^2}{\\text{Кл}^2}$. В среде сила уменьшается в $\\varepsilon$ раз.<br><br>
+                    <div style="color:var(--neon);">🧪 ЖИВАЯ МОДЕЛЬ (КЛИКНИ ДЛЯ СМЕНЫ ЗАРЯДА):</div>
                     <canvas id="charge-sim"></canvas>`
             },
-            'electrodynamics': { t: 'Электродинамика', c: 'Текст скоро будет...' },
-            'induction': { t: 'Индукция', c: 'Текст скоро будет...' },
-            'lenz': { t: 'Правило Ленца', c: 'Текст скоро будет...' }
+            'electrodynamics': { 
+                t: 'Электродинамика', 
+                c: `Изучает движение зарядов (электрический ток).<br><br>
+                    <b>Закон Ома для участка цепи:</b>
+                    $$I = \\frac{U}{R}$$
+                    <b>Сила тока:</b> $I = \\frac{\\Delta q}{\\Delta t}$ (Кл/с или Ампер).<br>
+                    <b>Сопротивление проводника:</b> $R = \\rho \\frac{l}{S}$.`
+            },
+            'induction': { 
+                t: 'Электромагнитная индукция', 
+                c: `Явление возникновения тока при изменении магнитного потока.<br><br>
+                    <b>Закон Фарадея:</b>
+                    $$\\mathcal{E} = -\\frac{\\Delta\\Phi}{\\Delta t}$$
+                    Где $\\Phi = B \\cdot S \\cdot \\cos \\alpha$ — магнитный поток.`
+            },
+            'lenz': { 
+                t: 'Правило Ленца', 
+                c: `Индукционный ток всегда имеет такое направление, что его магнитное поле препятствует изменению магнитного потока, вызвавшего этот ток.<br><br>
+                    Это следствие закона сохранения энергии.`
+            }
         };
 
         let simInterval;
@@ -65,7 +80,6 @@
             document.getElementById('title').innerText = data[id].t;
             document.getElementById('text').innerHTML = data[id].c;
 
-            // Принудительно обновляем MathJax
             if (window.MathJax) {
                 MathJax.typesetPromise();
             }
@@ -109,4 +123,11 @@
 
                 [c1, c2].forEach(c => {
                     ctx.fillStyle = c.col;
-                    ctx.beginPath(); ctx.arc(c.x, c.y,
+                    ctx.beginPath(); ctx.arc(c.x, c.y, 12, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = "#fff"; ctx.font = "12px Arial"; ctx.fillText(c.q > 0 ? "+" : "-", c.x-3, c.y+4);
+                });
+            }, 1000/60);
+        }
+    </script>
+</body>
+</html>
