@@ -2,126 +2,61 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>PhysHUD // SUBJECT_DATABASE</title>
+    <title>PhysHUD // CORE_SIMULATOR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root { --neon: #00f2ff; --bg: #000; --panel-bg: rgba(0, 0, 0, 0.95); }
+        :root { --neon: #00f2ff; --bg: #000; }
         body { margin: 0; background: var(--bg); color: white; font-family: 'Courier New', monospace; overflow: hidden; display: flex; }
         
-        .hud-grid { position: fixed; width: 100%; height: 100%; background-image: linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; z-index: 0; }
+        .hud-grid { position: fixed; width: 100%; height: 100%; background-image: linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; }
 
-        /* НАВИГАЦИЯ */
         nav {
-            width: 400px; z-index: 10; padding: 20px;
-            background: var(--panel-bg); border-right: 1px solid #222;
-            backdrop-filter: blur(15px); display: flex; flex-direction: column;
-            box-shadow: 10px 0 30px rgba(0,0,0,0.5); overflow-y: auto;
+            width: 320px; z-index: 10; padding: 30px;
+            background: rgba(0, 0, 0, 0.9); border-right: 1px solid #222;
+            backdrop-filter: blur(10px);
         }
 
-        .logo { font-size: 14px; letter-spacing: 4px; color: var(--neon); margin-bottom: 25px; text-align: center; border-bottom: 1px solid var(--neon); padding-bottom: 10px; }
-
-        /* Кнопка ТЕМЫ */
-        .main-menu-btn {
-            background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon);
-            color: var(--neon); padding: 12px; width: 100%; text-align: left;
-            font-weight: bold; cursor: pointer; letter-spacing: 2px; margin-bottom: 10px;
+        .logo { font-size: 12px; letter-spacing: 4px; color: var(--neon); margin-bottom: 20px; font-weight: bold; text-align: center; }
+        
+        /* Кнопка перехода на страницу тем */
+        .nav-topics-btn {
+            background: none; border: 2px solid var(--neon); color: var(--neon);
+            padding: 15px; width: 100%; cursor: pointer; font-weight: bold;
+            text-transform: uppercase; margin-bottom: 40px; transition: 0.3s;
         }
+        .nav-topics-btn:hover { background: var(--neon); color: black; box-shadow: 0 0 20px var(--neon); }
 
-        /* Список тем */
-        #topics-list { display: none; padding-left: 10px; border-left: 1px solid #333; margin-bottom: 20px; }
-        .topic-item { 
-            padding: 8px; font-size: 11px; color: #888; cursor: pointer; 
-            border-bottom: 1px solid #111; transition: 0.3s;
-        }
-        .topic-item:hover { color: var(--neon); background: rgba(0, 242, 255, 0.05); }
-
-        /* Окно контента */
-        #content-window {
-            margin-top: 20px; padding: 15px; border: 1px solid #222;
-            background: rgba(10,10,10,0.5); min-height: 200px;
-        }
-        #content-title { color: var(--neon); font-size: 14px; margin-bottom: 10px; text-transform: uppercase; }
-        #content-text { font-size: 12px; color: #ccc; line-height: 1.5; }
-
-        /* Симулятор в фоне */
-        #canvas3d { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.6; }
+        label { font-size: 10px; color: #666; display: block; margin-bottom: 10px; text-transform: uppercase; }
+        input[type=range] { width: 100%; accent-color: var(--neon); margin-bottom: 30px; }
+        
+        .data-stream { font-size: 11px; color: var(--neon); line-height: 1.5; margin-top: 30px; border-top: 1px solid #222; padding-top: 20px; }
+        
+        #canvas3d { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #waveCanvas { position: absolute; bottom: 30px; right: 30px; width: 350px; height: 120px; z-index: 5; border: 1px solid rgba(0,242,255,0.1); }
     </style>
 </head>
 <body>
     <div class="hud-grid"></div>
     
     <nav>
-        <div class="logo">HAGIWARA // PHYS_HUD</div>
+        <div class="logo">HAGIWARA // LAB_CORE</div>
 
-        <button class="main-menu-btn" onclick="toggleTopics()">[+] ТЕМЫ К ИЗУЧЕНИЮ</button>
+        <button class="nav-topics-btn" onclick="window.location.href='topics.html'">
+            📂 ОТКРЫТЬ УЧЕБНЫЕ ТЕМЫ
+        </button>
+        
+        <label>Inductance (L)</label>
+        <input type="range" id="L" min="0.5" max="10" step="0.1" value="3">
+        
+        <label>Capacitance (C)</label>
+        <input type="range" id="C" min="0.5" max="10" step="0.1" value="2">
 
-        <div id="topics-list">
-            <div class="topic-item" onclick="loadContent('electrostatics')">01. Электростатика</div>
-            <div class="topic-item" onclick="loadContent('electrodynamics')">02. Электродинамика</div>
-            <div class="topic-item" onclick="loadContent('induction')">03. Электромагнитная индукция</div>
-            <div class="topic-item" onclick="loadContent('lenz')">04. Направление тока и правило Ленца</div>
-        </div>
-
-        <div id="content-window">
-            <div id="content-title">Выберите тему</div>
-            <div id="content-text">Нажмите на интересующий раздел из списка выше для загрузки данных...</div>
+        <div class="data-stream">
+            > STATUS: ONLINE<br>
+            > FREQ: <span id="freq-out">0.00</span> Hz<br>
+            > WAVE: SINUSOIDAL
         </div>
     </nav>
 
     <div id="canvas3d"></div>
-
-    <script>
-        // Логика отображения тем
-        function toggleTopics() {
-            const list = document.getElementById('topics-list');
-            list.style.display = (list.style.display === 'block') ? 'none' : 'block';
-        }
-
-        // База данных текстов (сюда ты будешь вставлять свой текст)
-        const db = {
-            'electrostatics': {
-                title: 'Электростатика',
-                text: '[Место для твоего текста про заряды, закон Кулона и электрическое поле...]'
-            },
-            'electrodynamics': {
-                title: 'Электродинамика',
-                text: '[Место для твоего текста про движение зарядов, силу тока и сопротивление...]'
-            },
-            'induction': {
-                title: 'Электромагнитная индукция',
-                text: '[Место для твоего текста про возникновение тока в замкнутом контуре...]'
-            },
-            'lenz': {
-                title: 'Правило Ленца',
-                text: '[Место для твоего текста про направление индукционного тока...]'
-            }
-        };
-
-        function loadContent(key) {
-            document.getElementById('content-title').innerText = db[key].title;
-            document.getElementById('content-text').innerText = db[key].text;
-        }
-
-        // 3D Фон (Three.js)
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('canvas3d').appendChild(renderer.domElement);
-
-        const crystal = new THREE.Mesh(
-            new THREE.IcosahedronGeometry(2, 0), 
-            new THREE.MeshBasicMaterial({ color: 0x00f2ff, wireframe: true, transparent: true, opacity: 0.3 })
-        );
-        scene.add(crystal);
-        camera.position.z = 5; camera.position.x = 2;
-
-        function animate() {
-            requestAnimationFrame(animate);
-            crystal.rotation.y += 0.005;
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
-</body>
-</html>
+    <canvas id="
