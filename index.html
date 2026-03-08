@@ -2,18 +2,22 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhysHUD // CORE_SIMULATOR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root { --neon: #00f2ff; --bg: #000; }
         body { margin: 0; background: var(--bg); color: white; font-family: 'Courier New', monospace; overflow: hidden; display: flex; }
         
-        .hud-grid { position: fixed; width: 100%; height: 100%; background-image: linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; }
+        .hud-grid { position: fixed; width: 100%; height: 100%; background-image: linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; z-index: 0; }
 
         nav {
             width: 320px; z-index: 10; padding: 30px;
             background: rgba(0, 0, 0, 0.9); border-right: 1px solid #222;
             backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            transition: 0.3s;
         }
 
         .logo { font-size: 12px; letter-spacing: 4px; color: var(--neon); margin-bottom: 20px; font-weight: bold; text-align: center; }
@@ -27,12 +31,42 @@
         .nav-topics-btn:hover { background: var(--neon); color: black; box-shadow: 0 0 20px var(--neon); }
 
         label { font-size: 10px; color: #666; display: block; margin-bottom: 10px; text-transform: uppercase; }
-        input[type=range] { width: 100%; accent-color: var(--neon); margin-bottom: 30px; }
+        input[type=range] { width: 100%; accent-color: var(--neon); margin-bottom: 30px; cursor: pointer; }
         
-        .data-stream { font-size: 11px; color: var(--neon); line-height: 1.5; margin-top: 30px; border-top: 1px solid #222; padding-top: 20px; }
+        .data-stream { font-size: 11px; color: var(--neon); line-height: 1.5; margin-top: auto; border-top: 1px solid #222; padding-top: 20px; }
         
         #canvas3d { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        #waveCanvas { position: absolute; bottom: 30px; right: 30px; width: 350px; height: 120px; z-index: 5; border: 1px solid rgba(0,242,255,0.1); }
+        #waveCanvas { position: absolute; bottom: 30px; right: 30px; width: 350px; height: 120px; z-index: 5; border: 1px solid rgba(0,242,255,0.1); pointer-events: none; }
+
+        /* --- АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow: auto; }
+            nav {
+                width: 100%;
+                height: auto;
+                padding: 20px;
+                border-right: none;
+                border-bottom: 1px solid #222;
+                box-sizing: border-box;
+            }
+            .nav-topics-btn { margin-bottom: 20px; padding: 10px; font-size: 12px; }
+            input[type=range] { margin-bottom: 20px; }
+            .data-stream { margin-top: 20px; }
+            
+            #waveCanvas { 
+                width: 250px; 
+                height: 80px; 
+                bottom: 10px; 
+                right: 10px; 
+                background: rgba(0,0,0,0.5);
+            }
+            /* Сдвигаем 3D сцену, чтобы она не перекрывалась текстом */
+            #canvas3d { 
+                position: relative;
+                height: 50vh; 
+                order: 2; 
+            }
+        }
     </style>
 </head>
 <body>
@@ -78,29 +112,39 @@
         const wCanvas = document.getElementById('waveCanvas');
         const wCtx = wCanvas.getContext('2d');
 
+        // Установка четкости для холста волны
+        function resizeWaveCanvas() {
+            wCanvas.width = wCanvas.clientWidth;
+            wCanvas.height = wCanvas.clientHeight;
+        }
+        window.addEventListener('resize', resizeWaveCanvas);
+        resizeWaveCanvas();
+
         let time = 0;
         function animate() {
             requestAnimationFrame(animate);
             
             const L = parseFloat(document.getElementById('L').value);
             const C = parseFloat(document.getElementById('C').value);
-            const omega = 1 / Math.sqrt(L * C); // Формула Томсона
+            
+            // Формула Томсона: T = 2π√(LC), соответственно f = 1 / (2π√(LC))
+            const frequency = 1 / (2 * Math.PI * Math.sqrt(L * 1e-3 * C * 1e-3)); // Примерный расчет
+            const omega = 1 / Math.sqrt(L * C);
+            
             document.getElementById('freq-out').innerText = (omega / (2 * Math.PI)).toFixed(2);
 
             crystal.rotation.y += 0.01;
             crystal.rotation.z += 0.005;
             
-            // Пульсация кристалла в такт частоте
             const scale = 1 + Math.sin(time * omega) * 0.1;
             crystal.scale.set(scale, scale, scale);
 
-            // Рисуем волну осциллографа
             wCtx.clearRect(0, 0, wCanvas.width, wCanvas.height);
             wCtx.strokeStyle = '#00f2ff';
             wCtx.lineWidth = 2;
             wCtx.beginPath();
             for (let i = 0; i < wCanvas.width; i++) {
-                const y = 60 + Math.sin((i * 0.05) - (time * omega * 2)) * 40;
+                const y = (wCanvas.height / 2) + Math.sin((i * 0.05) - (time * omega * 2)) * (wCanvas.height * 0.35);
                 if (i === 0) wCtx.moveTo(i, y); else wCtx.lineTo(i, y);
             }
             wCtx.stroke();
