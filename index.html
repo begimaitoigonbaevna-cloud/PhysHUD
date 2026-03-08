@@ -1,25 +1,116 @@
-# 🌌 PhysHUD: LC-Oscillator Laboratory
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>PhysHUD // CORE_OSCILLATOR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root { --neon: #00f2ff; --bg: #000; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Courier New', monospace; overflow: hidden; display: flex; }
+        
+        /* Сетка HUD */
+        .hud-grid {
+            position: fixed; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px; pointer-events: none;
+        }
 
-![Status](https://img.shields.io/badge/STATUS-ACTIVE-success?style=for-the-badge&logo=nasa)
-![Topic](https://img.shields.io/badge/TOPIC-PHYSICS-blueviolet?style=for-the-badge)
+        /* Панель управления */
+        nav {
+            width: 320px; z-index: 10; padding: 40px;
+            background: rgba(0, 0, 0, 0.8); border-right: 1px solid #222;
+            backdrop-filter: blur(10px);
+        }
 
-Интерактивный симулятор электромагнитных колебаний в контуре, выполненный в стиле научно-фантастического интерфейса (HUD).
+        .logo { font-size: 12px; letter-spacing: 4px; color: var(--neon); margin-bottom: 40px; font-weight: bold; }
+        label { font-size: 10px; color: #666; display: block; margin-bottom: 10px; text-transform: uppercase; }
+        input[type=range] { width: 100%; accent-color: var(--neon); margin-bottom: 30px; }
+        
+        .data-stream { font-size: 11px; color: var(--neon); line-height: 1.5; margin-top: 50px; }
+        
+        #canvas3d { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+    </style>
+</head>
+<body>
+    <div class="hud-grid"></div>
+    
+    <nav>
+        <div class="logo">HAGIWARA // LAB_CORE</div>
+        
+        <label>Inductance (L) [Гн]</label>
+        <input type="range" id="L" min="0.5" max="10" step="0.1" value="2">
+        
+        <label>Capacitance (C) [Ф]</label>
+        <input type="range" id="C" min="0.5" max="10" step="0.1" value="1">
 
-## 🚀 О проекте
-Этот проект визуализирует работу **колебательного контура**. Пользователь может в реальном времени изменять параметры индуктивности ($L$) и емкости ($C$), наблюдая за изменением частоты и формы волны на осциллографе.
+        <div class="data-stream">
+            > STATUS: ONLINE<br>
+            > FREQ: <span id="freq-out">0.00</span> Hz<br>
+            > WAVE_FORM: SINUSOIDAL<br>
+            > RESONANCE: ACTIVE
+        </div>
+    </nav>
 
-### Основные функции:
-* **Real-time Simulation:** Математически точное моделирование волны.
-* **NASA Style UI:** Минималистичный темный дизайн с сеткой и неоновыми акцентами.
-* **Interactive Controls:** Ползунки для управления физическими величинами.
+    <div id="canvas3d"></div>
 
-## 🛠 Технологии
-* **HTML5 Canvas** — для отрисовки графиков.
-* **JavaScript** — физический движок и логика интерфейса.
-* **CSS3** — эффекты свечения (Glow) и анимация интерфейса.
+    <script>
+        // 1. Инициализация 3D (Three.js)
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas3d').appendChild(renderer.domElement);
 
-## 📖 Как запустить
-Просто откройте [ссылку на ваш GitHub Pages], чтобы начать эксперимент.
+        // Создаем "Shattered" объект (Икосаэдр)
+        const geometry = new THREE.IcosahedronGeometry(2, 0);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0x00f2ff, 
+            wireframe: true,
+            transparent: true,
+            opacity: 0.5 
+        });
+        const crystal = new THREE.Mesh(geometry, material);
+        scene.add(crystal);
 
----
-> *Hagiwara Physics Laboratory // 2026*
+        camera.position.z = 5;
+        camera.position.x = 1; // Сдвигаем вправо, чтобы не перекрывать панель
+
+        // 2. Логика симуляции
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Получаем параметры
+            const L = parseFloat(document.getElementById('L').value);
+            const C = parseFloat(document.getElementById('C').value);
+            const omega = 1 / Math.sqrt(L * C);
+            
+            // Вывод частоты
+            document.getElementById('freq-out').innerText = (omega / (2 * Math.PI)).toFixed(2);
+
+            // Анимация 3D объекта зависит от частоты контура
+            crystal.rotation.y += 0.01;
+            crystal.rotation.x += 0.005;
+            
+            // Объект пульсирует в такт колебаниям
+            const scale = 1 + Math.sin(time * omega) * 0.2;
+            crystal.scale.set(scale, scale, scale);
+            
+            // Меняем яркость в зависимости от "заряда"
+            material.opacity = 0.3 + Math.abs(Math.cos(time * omega)) * 0.7;
+
+            time += 0.05;
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
